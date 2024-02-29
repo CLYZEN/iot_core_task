@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.DeviceInfoDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -10,6 +11,7 @@ import software.amazon.awssdk.services.iot.model.DescribeThingResponse;
 import software.amazon.awssdk.services.iot.model.ResourceNotFoundException;
 
 @Service
+@Slf4j
 public class ThingService {
 
     public boolean validationThing(String thingName) {
@@ -20,6 +22,7 @@ public class ThingService {
 
         try {
             DescribeThingResponse describeThingResponse = iotClient.describeThing(DescribeThingRequest.builder().thingName(thingName).build());
+            log.debug("validation thing ok");
             return describeThingResponse.thingId().isEmpty();
         } catch (ResourceNotFoundException e) {
             return true;
