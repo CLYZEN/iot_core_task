@@ -16,6 +16,8 @@ public class IoTThingDTO {
     private String certificate_pem;
     private String key_private_pem;
     private String key_public_pem;
+    private Integer responseCode;
+    private Integer code;
     private String errorMessage;
 
 

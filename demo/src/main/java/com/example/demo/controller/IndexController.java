@@ -52,7 +52,7 @@ public class IndexController {
                                         .thingName(thingname)
                                         //.thingTypeName(deviceInfoDTO.getMaker())
                                         .build());
-        log.debug("ket <-> iot core");
+        log.debug("key <-> iot core");
 
         // Thing에 인증서 연결
         iotClient.attachThingPrincipal(builder ->
@@ -62,6 +62,8 @@ public class IndexController {
 
         // 등록된 Thing과 인증서의 정보 출력
         IoTThingDTO ioTThingDTO = new IoTThingDTO(createThingResponse, createKeysResponse);
+        ioTThingDTO.setCode(0);
+        ioTThingDTO.setResponseCode(200);
 
         iotClient.close();
         log.debug("task finish");

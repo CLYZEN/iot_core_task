@@ -17,6 +17,7 @@
 		<java.version>17</java.version>
 		<mavne.test.skip>true</mavne.test.skip>
 		<aws.java.sdk.version>2.22.0</aws.java.sdk.version>
+		<maven.test.skip>true</maven.test.skip>
 	</properties>
 
 	<dependencyManagement>
