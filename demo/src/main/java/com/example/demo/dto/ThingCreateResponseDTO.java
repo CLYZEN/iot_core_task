@@ -8,7 +8,7 @@ import software.amazon.awssdk.services.iot.model.CreateThingResponse;
 @Setter
 @ToString
 @NoArgsConstructor
-public class IoTThingDTO {
+public class ThingCreateResponseDTO {
 
     private String thing_arn;
     private String certificate_arn;
@@ -18,19 +18,16 @@ public class IoTThingDTO {
     private String key_public_pem;
     private Integer responseCode;
     private Integer code;
-    private String errorMessage;
 
-
-    public IoTThingDTO(String errorMessage) {
-        this.errorMessage = errorMessage;
+    public void setThingAttr(CreateThingResponse createThingResponse) {
+        this.thing_arn = createThingResponse.thingArn();
     }
 
-    public IoTThingDTO(CreateThingResponse createThingResponse, CreateKeysAndCertificateResponse createKeysResponse) {
-        this.thing_arn = createThingResponse.thingArn();
-        this.certificate_id = createKeysResponse.certificateId();
+    public void setCertificateAttr(CreateKeysAndCertificateResponse createKeysResponse) {
         this.certificate_arn = createKeysResponse.certificateArn();
+        this.certificate_id = createKeysResponse.certificateId();
         this.certificate_pem = createKeysResponse.certificatePem();
-        this.key_public_pem = createKeysResponse.keyPair().publicKey();
         this.key_private_pem = createKeysResponse.keyPair().privateKey();
+        this.key_public_pem = createKeysResponse.keyPair().publicKey();
     }
 }
