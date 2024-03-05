@@ -30,7 +30,10 @@ public class ThingController {
         String thingName = deviceInfoDTO.getMaker() + "_" + deviceInfoDTO.getModel() + "_" + deviceInfoDTO.getSerial_number();
         ThingCreateResponseDTO thingCreateResponseDTO = new ThingCreateResponseDTO();
 
-        log.info("iot Core register start");
+        log.info("Iot Core Register Task Start");
+        log.info("---------get device info ----------");
+        log.info(deviceInfoDTO.toString());
+        log.info("---------get device info ----------");
 
         try (IotClient iotClient = createIotClient()) {
             boolean validation = thingService.validationThing(thingName, iotClient);
@@ -53,7 +56,11 @@ public class ThingController {
             log.info("| 인증서 ID: {}", thingCreateResponseDTO.getCertificate_id());
             log.info("-------------------------------------------------");
 
-            log.info("iot register task finish");
+            log.info("DB Insert Start");
+            // DB Insert 관련
+            log.info("DB Insert Finish");
+
+            log.info("Iot Core Register Task Finish");
         } catch (Exception e) {
             String errorMessage = "Error occurred while creating thing or certificate.";
             log.error(errorMessage, e);
@@ -88,6 +95,11 @@ public class ThingController {
             log.info("| 사물 이름: {}", thingName);
             log.info("| 인증서 ID: {}", certificateIds);
             log.info("-------------------------------------------------");
+
+            log.info("DB Delete Start");
+            // DB Delete 관련
+            log.info("DB Delete Finish");
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorMessageDTO("인증서, 사물 삭제에 실패하였습니다."));
         }

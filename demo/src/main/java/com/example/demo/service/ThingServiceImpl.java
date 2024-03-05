@@ -20,7 +20,6 @@ public class ThingServiceImpl implements ThingService{
     private final CertificateService certificateService;
 
     public boolean validationThing(String thingName, IotClient iotClient) {
-
         try {
             DescribeThingResponse describeThingResponse = iotClient.describeThing(DescribeThingRequest.builder().thingName(thingName).build());
             log.debug("validation thing ok");
