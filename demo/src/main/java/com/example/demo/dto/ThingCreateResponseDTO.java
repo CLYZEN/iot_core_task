@@ -19,11 +19,11 @@ public class ThingCreateResponseDTO {
     private Integer responseCode;
     private Integer code;
 
-    public void setThingAttr(CreateThingResponse createThingResponse) {
+    public void setThingResponseAttr(CreateThingResponse createThingResponse) {
         this.thing_arn = createThingResponse.thingArn();
     }
 
-    public void setCertificateAttr(CreateKeysAndCertificateResponse createKeysResponse) {
+    public void setCertificateResponseAttr(CreateKeysAndCertificateResponse createKeysResponse) {
         this.certificate_arn = createKeysResponse.certificateArn();
         this.certificate_id = createKeysResponse.certificateId();
         this.certificate_pem = createKeysResponse.certificatePem();

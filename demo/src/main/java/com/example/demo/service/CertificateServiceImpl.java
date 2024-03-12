@@ -12,6 +12,8 @@ import java.util.ArrayList;
 public class CertificateServiceImpl implements CertificateService{
     @Override
     public CreateKeysAndCertificateResponse attachKey(IotClient iotClient, String thingName) {
+
+        log.info("Attach Key Start");
         CreateKeysAndCertificateResponse createKeysResponse = iotClient.createKeysAndCertificate(CreateKeysAndCertificateRequest.builder().setAsActive(true).build());
 
         AttachThingPrincipalRequest attachThingPrincipalRequest = AttachThingPrincipalRequest.builder()
@@ -19,22 +21,23 @@ public class CertificateServiceImpl implements CertificateService{
                 .principal(createKeysResponse.certificateArn())
                 .build();
         iotClient.attachThingPrincipal(attachThingPrincipalRequest);
+        log.info("Attach Key Finish");
 
         return createKeysResponse;
     }
 
     @Override
     public ArrayList<String> deleteKey(IotClient iotClient, String thingName) {
+        log.info("Certificate Key Delete Start");
         ArrayList<String> certificateIdList = new ArrayList<>();
 
-        log.info("principal delete start");
+        log.info("Principal Delete Start");
         // Thing에 연결된 인증서 확인
         ListThingPrincipalsRequest listThingPrincipalsRequest = ListThingPrincipalsRequest.builder()
                 .thingName(thingName)
                 .build();
         ListThingPrincipalsResponse listThingPrincipalsResponse = iotClient.listThingPrincipals(listThingPrincipalsRequest);
 
-        log.info("principal delete for loop");
         // 모든 연결된 인증서 제거
         for (String principal : listThingPrincipalsResponse.principals()) {
             String certificateId = principal.substring(principal.lastIndexOf("/") + 1);
@@ -44,9 +47,9 @@ public class CertificateServiceImpl implements CertificateService{
                     .build();
             iotClient.detachThingPrincipal(detachThingPrincipalRequest);
         }
-        log.info("principal delete end");
+        log.info("Principal Delete Finish");
 
-        log.info("certificate delete start");
+        log.info("Certificate Delete Start");
         // 모든 연결된 인증서 삭제
         ListCertificatesRequest listCertificatesRequest = ListCertificatesRequest.builder()
                 .build();
@@ -66,8 +69,9 @@ public class CertificateServiceImpl implements CertificateService{
                     .build();
             iotClient.deleteCertificate(deleteCertificateRequest);
         }
-        log.info("certificate delete ok");
+        log.info("Certificate Delete Finish");
 
+        log.info("Certificate Key Delete Finish");
         return certificateIdList;
     }
 }

@@ -20,24 +20,19 @@ public class ThingServiceImpl implements ThingService{
     private final CertificateService certificateService;
 
     public boolean validationThing(String thingName, IotClient iotClient) {
+        log.info("Validation Check Start");
         try {
             DescribeThingResponse describeThingResponse = iotClient.describeThing(DescribeThingRequest.builder().thingName(thingName).build());
-            log.debug("validation thing ok");
+            log.info("validation thing ok");
             return describeThingResponse.thingId().isEmpty();
         } catch (ResourceNotFoundException e) {
             return true;
         }
     }
 
-    public CreateThingResponse createThing(DeviceInfoDTO deviceInfoDTO, String thingName) {
+    public CreateThingResponse createThing(DeviceInfoDTO deviceInfoDTO, String thingName,IotClient iotClient) {
 
-
-        IotClient iotClient = IotClient.builder()
-                .region(Region.AP_NORTHEAST_2)
-                .credentialsProvider(DefaultCredentialsProvider.create())
-                .build();
-
-
+        log.info("Thing Create Start");
         CreateThingResponse createThingResponse =
                 iotClient
                         .createThing(

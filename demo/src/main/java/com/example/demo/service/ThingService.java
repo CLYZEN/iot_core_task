@@ -9,7 +9,8 @@ public interface ThingService {
 
     boolean validationThing(String thingName,IotClient IotClient);
 
-    CreateThingResponse createThing(DeviceInfoDTO deviceInfoDTO, String thingName);
+    CreateThingResponse createThing(DeviceInfoDTO deviceInfoDTO, String thingName,IotClient iotClient);
 
     void deleteThing(IotClient iotClient, String thingName);
+
 }
