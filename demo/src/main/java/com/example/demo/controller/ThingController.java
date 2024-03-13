@@ -4,13 +4,11 @@ import com.example.demo.dto.*;
 import com.example.demo.service.AttrService;
 import com.example.demo.service.CertificateService;
 import com.example.demo.service.ThingService;
-import com.example.demo.service.ThingServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.bind.annotation.*;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -138,7 +136,7 @@ public class ThingController {
     }
 
     @GetMapping(value = "api/v1/thing/list")
-    public ResponseEntity<Object> getThingList() {
+    public ResponseEntity<Object> getThingList(@RequestParam(required = false) String userId) {
         try(IotClient iotClient = createIotClient()){
 
             ListThingsRequest listThingsRequest = ListThingsRequest.builder().build();
@@ -156,14 +154,16 @@ public class ThingController {
 
                 Map<String, String> attributes = describeThingResponse.attributes();
 
-                ThingInfoDTO thingInfoDTO = new ThingInfoDTO();
-                thingInfoDTO.setThingArn(thing.thingArn());
-                thingInfoDTO.setThingName(thing.thingName());
-                thingInfoDTO.setThingTypeName(thing.thingTypeName());
-                thingInfoDTO.setThingAttr(attributes);
-                thingInfoDTOS.add(thingInfoDTO);
+                if (userId != null && attributes.containsKey("userId") && attributes.get("userId").equals(userId)) {
+                    ThingInfoDTO thingInfoDTO = new ThingInfoDTO(thing, attributes);
+                    thingInfoDTOS.add(thingInfoDTO);
+                } else if (userId == null) {
+                    ThingInfoDTO thingInfoDTO = new ThingInfoDTO(thing, attributes);
+                    thingInfoDTOS.add(thingInfoDTO);
+                }
             }
-            return ResponseEntity.status(HttpStatus.OK).body(thingInfoDTOS);
+
+            return thingInfoDTOS.isEmpty() ? ResponseEntity.status(HttpStatus.OK).body("List is Empty") : ResponseEntity.status(HttpStatus.OK).body(thingInfoDTOS);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorMessageDTO("List Is Null"));
