@@ -1,14 +1,9 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.DeviceInfoDTO;
-import com.example.demo.dto.ErrorMessageDTO;
+import com.example.demo.dto.request.DeviceInfoDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iot.IotClient;
 import software.amazon.awssdk.services.iot.model.*;
 
@@ -19,17 +14,19 @@ public class ThingServiceImpl implements ThingService{
 
     private final CertificateService certificateService;
 
+    @Override
     public boolean validationThing(String thingName, IotClient iotClient) {
         log.info("Validation Check Start");
         try {
             DescribeThingResponse describeThingResponse = iotClient.describeThing(DescribeThingRequest.builder().thingName(thingName).build());
-            log.info("validation thing ok");
+            log.info("Find Thing" + describeThingResponse.thingName());
             return describeThingResponse.thingId().isEmpty();
-        } catch (ResourceNotFoundException e) {
+        } catch (IotException e) {
             return true;
         }
     }
 
+    @Override
     public CreateThingResponse createThing(DeviceInfoDTO deviceInfoDTO, String thingName,IotClient iotClient) {
 
         log.info("Thing Create Start");
@@ -53,6 +50,16 @@ public class ThingServiceImpl implements ThingService{
                 .build();
         iotClient.deleteThing(deleteThingRequest);
         log.info("thing delete ok");
+    }
+
+    @Override
+    public DescribeThingResponse getThingForName(String thingName, IotClient iotClient) {
+
+        DescribeThingRequest request = DescribeThingRequest.builder()
+                .thingName(thingName)
+                .build();
+
+        return iotClient.describeThing(request);
     }
 
 }

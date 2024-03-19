@@ -1,13 +1,11 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.UserInfoDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 import software.amazon.awssdk.services.iot.IotClient;
-import software.amazon.awssdk.services.iot.model.AttributePayload;
-import software.amazon.awssdk.services.iot.model.UpdateThingRequest;
+import software.amazon.awssdk.services.iot.model.*;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -50,6 +48,24 @@ public class AttrServiceImpl implements AttrService {
         iotClient.updateThing(request);
     }
 
+    @Override
+    public void updateThingAttr(String thingName, HashMap<String, String> attributes,IotClient iotClient) {
+        UpdateThingRequest request = UpdateThingRequest.builder()
+                .thingName(thingName)
+                .attributePayload(AttributePayload.builder()
+                        .attributes(attributes)
+                        .build())
+                .build();
+
+        try(iotClient) {
+            UpdateThingResponse response = iotClient.updateThing(request);
+
+            log.info("Thing updated successfully : " + response.toString());
+        } catch (IotException e) {
+            log.error("Failed to update thing: " + e.getMessage());
+        }
+
+    }
 
     private static String getArgsFromParam(String fieldName, Object... args) {
         String resArgs = "";
@@ -72,4 +88,6 @@ public class AttrServiceImpl implements AttrService {
         }
         return resArgs;
     }
+
+
 }

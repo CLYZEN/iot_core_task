@@ -1,6 +1,8 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.*;
+import com.example.demo.dto.request.DeviceInfoDTO;
+import com.example.demo.dto.request.ThingDeleteRequestDTO;
+import com.example.demo.dto.response.*;
 import com.example.demo.service.AttrService;
 import com.example.demo.service.CertificateService;
 import com.example.demo.service.ThingService;
@@ -16,23 +18,25 @@ import software.amazon.awssdk.services.iot.IotClient;
 import software.amazon.awssdk.services.iot.model.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
 @Slf4j
+@RequestMapping("/api/v1/thing")
 public class ThingController {
 
     private final ThingService thingService;
     private final CertificateService certificateService;
     private final AttrService attrService;
 
-    @PostMapping(value = "/api/v1/thing/create")
+    @PostMapping(value = "/create")
     @Transactional
     public ResponseEntity<Object> createThing(@RequestBody DeviceInfoDTO deviceInfoDTO) {
 
         if (deviceInfoDTO == null) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorMessageDTO("Device Info is null"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseDTO().setResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(),"Device Info is null"));
         }
 
         StringBuffer errorMessage = new StringBuffer();
@@ -48,12 +52,11 @@ public class ThingController {
         try {
             boolean validation = thingService.validationThing(thingName, iotClient);
             if (!validation) {
-
-               errorMessage.append("Thing with name")
+                errorMessage.append("Thing with name")
                             .append(thingName)
                             .append(" already exists.");
 
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorMessageDTO(errorMessage.toString()));
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseDTO().setResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(),errorMessage.toString()));
             }
 
             CreateThingResponse createThingResponse = thingService.createThing(deviceInfoDTO, thingName,iotClient);
@@ -65,10 +68,10 @@ public class ThingController {
             attrService.setThingAttr(attributePayload,thingName,iotClient);
             log.info("Thing Attr Set Finish");
 
+            thingCreateResponseDTO = (ThingCreateResponseDTO) new ThingCreateResponseDTO().setResponse(HttpStatus.OK.value(),"Success");
             thingCreateResponseDTO.setThingResponseAttr(createThingResponse);
             thingCreateResponseDTO.setCertificateResponseAttr(createKeysResponse);
             thingCreateResponseDTO.setCode(0);
-            thingCreateResponseDTO.setResponseCode(200);
 
             log.info("-------------------------------------------------");
             log.info("| 사물, 인증서 등록 완료");
@@ -85,26 +88,24 @@ public class ThingController {
             log.info("DB Insert Finish");
 
             log.info("Iot Core Register Task Finish");
+            return ResponseEntity.status(HttpStatus.OK).body(thingCreateResponseDTO);
         } catch (Exception e) {
             certificateService.deleteKey(iotClient,thingName);
             thingService.deleteThing(iotClient,thingName);
             errorMessage.append("Error occurred while creating thing or certificate.");
             log.error(errorMessage.toString(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorMessageDTO(errorMessage.toString()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseDTO().setResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(),errorMessage.toString()));
         } finally {
             iotClient.close();
         }
 
-        return ResponseEntity.status(HttpStatus.OK).body(thingCreateResponseDTO);
-
     }
 
 
-    @PostMapping(value = "api/v1/thing/delete")
+    @PostMapping(value = "/delete")
     @Transactional
     public ResponseEntity<Object> deleteThing(@RequestBody ThingDeleteRequestDTO thingDeleteRequestDTO) {
         String thingName = thingDeleteRequestDTO.getThingName();
-        ThingDeleteResponseDTO thingDeleteResponseDTO = new ThingDeleteResponseDTO();
 
         log.info("Thing Delete Task Start");
         try(IotClient iotClient = IotClient.create()){
@@ -114,9 +115,6 @@ public class ThingController {
 
             thingService.deleteThing(iotClient,thingName);
 
-            thingDeleteResponseDTO.setCode(0);
-            thingDeleteResponseDTO.setResponseCode(200);
-            thingDeleteResponseDTO.setMessage(thingName + " Delete OK!!");
             log.info("Thing Delete Task Finish");
             log.info("-------------------------------------------------");
             log.info("| Thing, Certificate Delete OK");
@@ -129,26 +127,24 @@ public class ThingController {
             log.info("DB Delete Finish");
 
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorMessageDTO("Certificate, Thing Delete Failed"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseDTO().setResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(),"Certificate, Thing Delete Failed"));
         }
 
-        return ResponseEntity.status(HttpStatus.OK).body(thingDeleteResponseDTO);
+        return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO().setResponse(HttpStatus.OK.value(), "Thing, Certificated Delete Success!"));
     }
 
-    @GetMapping(value = "api/v1/thing/list")
+    @GetMapping(value = "/list")
     public ResponseEntity<Object> getThingList(@RequestParam(required = false) String userId) {
-        try(IotClient iotClient = createIotClient()){
-
+        try (IotClient iotClient = createIotClient()) {
             ListThingsRequest listThingsRequest = ListThingsRequest.builder().build();
             ListThingsResponse listThingsResponse = iotClient.listThings(listThingsRequest);
 
             ArrayList<ThingInfoDTO> thingInfoDTOS = new ArrayList<>();
 
-            for(ThingAttribute thing : listThingsResponse.things()) {
-
+            for (ThingAttribute thing : listThingsResponse.things()) {
                 DescribeThingRequest describeThingRequest = DescribeThingRequest.builder()
-                                .thingName(thing.thingName())
-                                        .build();
+                        .thingName(thing.thingName())
+                        .build();
 
                 DescribeThingResponse describeThingResponse = iotClient.describeThing(describeThingRequest);
 
@@ -163,17 +159,30 @@ public class ThingController {
                 }
             }
 
-            return thingInfoDTOS.isEmpty() ? ResponseEntity.status(HttpStatus.OK).body("List is Empty") : ResponseEntity.status(HttpStatus.OK).body(thingInfoDTOS);
+            ResponseDTO responseDTO = new ResponseDTO();
+            responseDTO.setResponseCode(HttpStatus.OK.value());
+            responseDTO.setResponseMessage("List is retrieved successfully");
+
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("thingInfo", thingInfoDTOS);
+            responseBody.put("response", responseDTO);
+
+            return ResponseEntity.status(HttpStatus.OK).body(responseBody);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorMessageDTO("List Is Null"));
+            ResponseDTO responseDTO = new ResponseDTO();
+            responseDTO.setResponseCode(HttpStatus.NOT_FOUND.value());
+            responseDTO.setResponseMessage("List Is Null");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseDTO);
         }
     }
 
-    private IotClient createIotClient() {
+
+    public IotClient createIotClient() {
         return IotClient.builder()
                 .region(Region.AP_NORTHEAST_2)
                 .credentialsProvider(DefaultCredentialsProvider.create())
                 .build();
     }
+
 }

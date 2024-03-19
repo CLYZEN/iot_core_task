@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.iot.IotClient;
 import software.amazon.awssdk.services.iot.model.*;

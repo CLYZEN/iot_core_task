@@ -1,4 +1,4 @@
-package com.example.demo.dto;
+package com.example.demo.dto.response;
 
 import lombok.*;
 import software.amazon.awssdk.services.iot.model.CreateKeysAndCertificateResponse;
@@ -7,8 +7,7 @@ import software.amazon.awssdk.services.iot.model.CreateThingResponse;
 @Getter
 @Setter
 @ToString
-@NoArgsConstructor
-public class ThingCreateResponseDTO {
+public class ThingCreateResponseDTO extends ResponseDTO {
 
     private String thing_arn;
     private String certificate_arn;
@@ -16,7 +15,6 @@ public class ThingCreateResponseDTO {
     private String certificate_pem;
     private String key_private_pem;
     private String key_public_pem;
-    private Integer responseCode;
     private Integer code;
 
     public void setThingResponseAttr(CreateThingResponse createThingResponse) {

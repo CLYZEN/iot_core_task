@@ -1,5 +1,6 @@
-package com.example.demo.dto;
+package com.example.demo.dto.request;
 
+import com.example.demo.dto.response.UserInfoDTO;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,7 +9,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class DeviceInfoDTO {
+public class DeviceInfoDTO{
 
     private String maker;
 
